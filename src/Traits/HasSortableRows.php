@@ -125,7 +125,8 @@ trait HasSortableRows
 
                 if (empty($request->get('orderBy')) && $shouldSort) {
                     $query->getQuery()->orders = [];
-                    return $query->orderBy($sortability->model->determineOrderColumnName());
+                    $direction = static::getOrderByDirection($sortability->sortable);
+                    return $query->orderBy($sortability->model->determineOrderColumnName(), $direction);
                 }
             }
         }
@@ -152,5 +153,17 @@ trait HasSortableRows
         if (!isset($model->sortable)) return $defaultConfiguration;
 
         return array_merge($defaultConfiguration, $model->sortable);
+    }
+
+  /**
+   * Get the orderBy direction.
+   */
+    public static function getOrderByDirection($config)
+    {
+        $order = 'ASC';
+        if (isset($config['nova_order_by'])) {
+            $order = strtoupper($config['nova_order_by']);
+        }
+        return $order;
     }
 }

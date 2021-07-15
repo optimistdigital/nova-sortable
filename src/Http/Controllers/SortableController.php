@@ -20,6 +20,11 @@ class SortableController
         $viaRelationship = $request->input('viaRelationship');
         $relationshipType = $request->input('relationshipType');
 
+        // Reverse the array if it is configured to order by DESC.
+        if (HasSortableRows::getOrderByDirection($validationResult->sortable) === 'DESC') {
+          $resourceIds = array_reverse($resourceIds);
+        }
+
         // Relationship sorting
         if (!empty($viaResource)) {
             $resourceClass = Nova::resourceForKey($viaResource);
@@ -133,14 +138,16 @@ class SortableController
     public function moveToStart(NovaRequest $request)
     {
         $validationResult = $this->validateRequest($request);
-        $validationResult->model->moveToStart();
+        $method = HasSortableRows::getOrderByDirection($validationResult->sortable) !== 'DESC' ? 'moveToStart' : 'moveToEnd';
+        $validationResult->model->{$method}();
         return response('', 204);
     }
 
     public function moveToEnd(NovaRequest $request)
     {
         $validationResult = $this->validateRequest($request);
-        $validationResult->model->moveToEnd();
+        $method = HasSortableRows::getOrderByDirection($validationResult->sortable) !== 'DESC' ? 'moveToEnd' : 'moveToStart';
+        $validationResult->model->{$method}();
         return response('', 204);
     }
 
@@ -171,4 +178,5 @@ class SortableController
         }
         return $improvedSortedOrder;
     }
+
 }
